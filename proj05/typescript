@@ -1,0 +1,1115 @@
+Script started on Mon 11 Mar 2019 07:00:20 PM EDT
+ssy3@gold24:~/cs112/proj05$ ls
+Debug	ListStreamOut.txt  ListTest2.txt   ListTester.h        tester.cpp
+List.h	ListTest1.txt	   ListTester.cpp  ListTestOutput.txt  typescript
+ssy3@gold24:~/cs112/proj05$ cat List.h LIstS    istStreamOUt.   ut.txt Listest   Test1.txt ListTest2 .txt ListTester.cpp Lest   istTester.h ListTestOutput.txt test. er.cpp
+/*
+ * List.h declares methods for List class.
+ * Student: Sebene Yi (ssy3) and Rebekah Cross (rjc35)
+ * Date: March 11, 2019
+ */
+
+#ifndef LIST_H_
+#define LIST_H_
+
+#include <iostream>
+#include <stdexcept>
+#include <cassert>
+#include <fstream>
+using namespace std;
+
+typedef double Item;
+template<class Item>
+
+class List {
+public:
+	List(); 																// default constructor
+	void append(const Item& it);
+	unsigned getSize() const;
+	Item getFirst() const;
+	Item getLast() const;
+	~List(); 																//destructor
+	List(const List& original); 											//copy constructor
+	List& operator=(const List& original);
+
+	bool operator==(const List& original);									//by: Rebekah Cross (member 1)
+	void readFrom(ifstream& cin);											//by: Rebekah Cross (member 1)
+	void writeTo(string fileName, char sep);								//by: Rebekah Cross (member 1)
+	void prepend(const Item& number);										//by: Rebekah Cross (member 1)
+	void insert(const Item& num, int index);								//by: Rebekah Cross (member 1)
+
+	bool operator!=(const List& original); 									//by: Sebene Yi (member 2)
+	void writeTo(ostream& out, char separator) const;						//by: Sebene Yi (member 2)
+	void readFrom(const string filename); 									//by: Sebene Yi (member 2)
+	unsigned getIndexOf(Item it) const;										//by: Sebene Yi (member 2)
+	Item remove(int index);													//by: Sebene Yi (member 2)
+
+private:
+	struct Node {
+		Item myItem;
+		Node * myNext;
+		Node(); 					//default node constructor
+		Node(Item it, Node * next); //explicit node constructor
+		~Node();
+	};
+
+	Node * myFirst;
+	Node * myLast;
+
+	unsigned mySize;
+
+	friend class ListTester;
+};
+
+/*
+ * default constructor initializing default values
+ * @param:
+ * return:
+ */
+template<class Item>
+List<Item>::List() {
+	mySize = 0;
+	myFirst = NULL;
+	myLast = NULL;
+}
+
+/*
+ * Node default constructor initializing default values to nodes
+ * @param:
+ * return:
+ */
+template<class Item>
+List<Item>::Node::Node() {
+		myItem = Item();
+		myNext = NULL;
+}
+
+/*
+ * Node explicit constructor initializing given values to nodes
+ * @param:
+ * return:
+ */
+template<class Item>
+List<Item>::Node::Node(Item it, Node * next) {
+	myItem = it;
+	myNext = next;
+}
+
+/*
+ * adds Item it to the list
+ * @param: Item it
+ * return: a new list
+ */
+template<class Item>
+void List<Item>::append(const Item& it) {
+	List<Item>::Node* n1 = new List<Item>::Node(it, NULL);
+	if (mySize == 0) {
+		mySize = 1;
+		myLast = n1;
+		myFirst = n1;
+	}
+	else {
+		myLast->myNext = n1;
+		mySize += 1;
+
+	}
+	myLast = n1;
+}
+
+/*
+ * gets and returns mySize
+ * @param:
+ * return: unsigned mySize
+ */
+template<class Item>
+unsigned List<Item>::getSize() const {
+	return mySize;
+}
+
+/*
+ * gets the first node in a list
+ * @param:
+ * return: Item with a node whose address is in myFirst
+ */
+template<class Item>
+Item List<Item>::getFirst() const {
+	if (mySize < 0 or myFirst == NULL) {
+		throw underflow_error("Parameters are negative and null!");
+	}
+	return myFirst -> myItem;
+}
+
+/*
+ * gets the last node in a list
+ * @param:
+ * return: Item with a node whose address is in myLast
+ */
+template<class Item>
+Item List<Item>::getLast() const {
+	if (mySize < 0 or myFirst == NULL) {
+		throw underflow_error("Parameters are negative and null!");
+	}
+	return myLast -> myItem;
+}
+
+/*
+ * destructor to reclaim dynamic memory
+ * @param:
+ * return:
+ */
+template<class Item>
+List<Item>::~List() {
+   delete myFirst;          // delete first node, invoking ~Node() (does nothing if myFirst == NULL)
+   myFirst = myLast = NULL; // clear myFirst and myLast (optional)
+   mySize = 0;              // clear mySize (optional)
+}
+
+/*
+ * destructor to reclaim dynamic memory
+ * @param:
+ * return:
+ */
+template<class Item>
+List<Item>::Node::~Node() {
+//	cout << "~Node() is deallocating the node containing item "
+//	             << myItem << endl;
+     delete myNext;       // delete the next node, invoking ~Node() in it
+                          // (does nothing if myNext == NULL)
+  }
+
+/*
+ * copy constructor
+ * @param: const List&
+ * return:
+ */
+template<class Item>
+List<Item>::List(const List<Item>& original) {
+	myFirst = myLast = NULL; //  set pointers
+	mySize = 0; //   and size to 'empty' values
+	Node* oPtr = original.myFirst; //  start at the first node
+	while (oPtr != NULL) {
+		//  while there are nodes to copy:
+		append(oPtr->myItem); //   append the item in that node
+		oPtr = oPtr->myNext; //   advance to next node
+	}
+}
+
+/*
+ * defining = operator
+ * @param: const List&
+ * return: List&
+ */
+template<class Item>
+List<Item>& List<Item>::operator=(const List<Item>& original) {
+	if (&original != this) {
+		delete myFirst;
+		myFirst = myLast = NULL; //  set pointers
+		mySize = 0; //   and size to 'empty' values
+		Node* nPtr = original.myFirst;
+		while (nPtr != NULL) {
+			//  while there are nodes to copy:
+			append(nPtr->myItem); //   append the item in that node
+			nPtr = nPtr->myNext; //   advance to next node
+		}
+		return *this;
+	}
+}
+
+/*
+ * equality method- returns true if the same list
+ * input = list
+ * output = bool
+ * Author: Rebekah Cross
+ */
+template < class Item>
+bool List<Item>::operator==(const List<Item>& original) {
+	//both empty lists
+	if ( mySize == 0 and original.getSize() == 0) {
+		return true;
+	}
+	else if ( (mySize == original.mySize) and
+			(myFirst == original.myFirst) and
+			(myLast == original.myLast) ) {
+		for (unsigned i = 0; i < mySize; ++i) {
+			if (myFirst->myNext->myItem != original.myFirst->myNext->myItem) {
+				//returns false if differing values
+				return false;
+		}
+	}return true;
+}
+	return false;
+}
+
+/*
+ * reads values from a file into a list
+ * Author: Rebekah Cross
+ */
+template < class Item>
+void List<Item>::readFrom(ifstream& fin) {
+	char character;
+	unsigned value;
+	fin >> std::noskipws;		//ensures whitespace is read
+	while ( character != '\n' ) {
+		fin >> value >> character ;
+		append(value);			//appends value to the list
+	}
+}
+
+/*
+ * writes values from a list into a file
+ * uses user designated separator between values
+ * Author: Rebekah Cross
+ */
+template < class Item>
+void List<Item>::writeTo(string fileName, char sep) {
+	ofstream out( fileName.c_str() );
+	Node* ptr;
+	ptr = myFirst;
+	while ( ptr != NULL ) {
+		out << ptr->myItem;
+		out << sep;
+		ptr = ptr->myNext;	//iterates through pointers
+	}
+}
+
+/*
+ * adds a value to the beginning of a list
+ * Author: Rebekah Cross
+ */
+template < class Item>
+void List<Item>::prepend(const Item& number) {
+	Node* nodePtr = new Node(number, NULL);
+	if ( (mySize == 0) ) {
+		myLast = nodePtr;
+	}
+	else { nodePtr->myNext = myFirst; }
+	myFirst = nodePtr;
+	mySize = mySize + 1;
+}
+
+/*
+ * inserts a value into the list at assigned index
+ * Author: Rebekah Cross
+ */
+template < class Item>
+void List<Item>::insert(const Item& num, int index) {
+	if ( mySize == 0) {
+		throw ( invalid_argument(" this is an empty list " ));
+	}
+	Node* ptr = new Node(num, NULL);
+	//keep track of previous and current pointers
+	Node* point = myFirst;
+	Node* earlierPoint;
+	for ( int i = 0; i < index; ++i) {
+		//move pointers through the list to assigned index
+		earlierPoint = point;
+		point = point->myNext;
+	}
+	earlierPoint->myNext = ptr;
+	ptr->myNext = point;
+
+}
+
+/*
+ * defining != operator
+ * @param: const List&
+ * returns: boolean
+ * by: Sebene Yi for proj05
+ */
+template<class Item>
+bool List<Item>::operator!=(const List<Item>& original) {
+	if (this != &original) {
+		return true;}
+	if (mySize != original.mySize) {
+		return true;
+	}
+
+	Node* nPtr = myFirst;
+	Node* oPtr = original.myFirst;
+	for (unsigned i = 0; i < mySize; i++) {
+			if (nPtr -> myItem != oPtr -> myItem) {
+				return true;
+			}
+			nPtr = nPtr -> myNext;
+			oPtr = oPtr -> myNext;
+		}
+	return false;
+}
+
+/*
+ * write to stream
+ * @param: ostream, char separator const
+ * return:
+ * by: Sebene Yi for proj 05
+ */
+template<class Item>
+void List<Item>::writeTo(ostream& out, char separator) const {
+	Node* nPtr = myFirst;
+	unsigned i = 1;
+	while (nPtr != NULL) {
+		if (i == mySize) {
+			out << nPtr ->myItem;
+		}
+		else {
+		out << nPtr->myItem << separator;}
+		nPtr = nPtr->myNext; 		//   advance to next node
+		i++;
+	}
+	out << "\n";
+}
+
+/*
+ * read from string
+ * @param: const string filename
+ * return:
+ * by: Sebene Yi for proj 05
+ */
+template<class Item>
+void List<Item>::readFrom(const string filename) {
+	ifstream fin( filename.c_str() );
+	assert( fin.is_open());
+	int size;
+
+	while (!fin.eof()) {
+		fin >> size;
+		this->append(size);
+	}
+	fin.close();
+}
+
+/*
+ * get index of value
+ * @param: const Item&
+ * return: unsigned index of value
+ * by: Sebene Yi for proj 05
+ */
+template<class Item>
+unsigned List<Item>::getIndexOf(Item it) const {
+	Node* nPtr = myFirst;
+	for (unsigned i = 0; i<mySize; i++) {
+		if (nPtr->myItem == it) {
+			return i;
+		}
+		else {if (nPtr->myItem != it){
+			nPtr = nPtr->myNext;
+		}
+		}
+	}
+	return -1;
+}
+
+/*
+ * removing by index
+ * @param: int index
+ * return: item
+ * by: Sebene Yi for proj 05
+ */
+template<class Item>
+Item List<Item>::remove(int index) {
+	Item remove;
+	Node* nPtr = myFirst;
+
+	if (mySize == 0) {
+		throw invalid_argument("The list is empty!");
+	}
+	if (index<=0) {
+		myFirst = myFirst->myNext;
+		mySize --;
+	}
+	if (index >= mySize) {
+		remove = myLast->myItem;
+		delete myLast;
+	}
+	else {
+		for (unsigned i=1; i<mySize; ++i) {
+			nPtr = nPtr -> myNext;
+			if (i==index) {
+				remove = nPtr->myItem;
+				mySize --;
+		}
+	}
+	}
+	return remove;
+	delete nPtr;
+}
+
+#endif /* LIST_H_ */
+1	2	3
+1 2 3
+4 5 6/* ListTester.cpp defines the test methods for class List.
+ * Student: Sebene Yi (ssy3) and Rebekah Cross (rjc35)
+ * Date: March 11, 2019
+ * Joel Adams, for CS 112 at Calvin College.
+ * edited by: Sebene Yi and Rebekah Cross for CS 112 proj05
+ */
+
+
+#include "ListTester.h" // ListTester
+#include "List.h"       // List
+#include <iostream>     // cin, cout
+#include <cassert>      // assert()
+#include <cstdlib>      // exit()
+#include <stdexcept>    // underflow_error
+#include <fstream>
+using namespace std;
+
+typedef double Item;
+
+void ListTester::runTests() {
+	cout << "Running List tests..." << endl;
+	testDefaultConstructor();
+	testNodeDefaultConstructor();
+	testNodeExplicitConstructor();
+	testAppend();
+	testDestructor();
+	testCopyConstructor();
+	testAssignment();
+
+	testEquality();
+	testReadFromStream();
+	testWriteToFile();
+	testPrepend();
+	testInsert();
+
+	testInequality();					//by: Sebene Yi (member 2)
+	testWriteToStream();				//by: Sebene Yi (member 2)
+	testReadFromString(); 				//by: Sebene Yi (member 2)
+	testGetIndexOf();					//by: Sebene Yi (member 2)
+	testRemove();						//by: Sebene Yi (member 2)
+
+
+	cout << "All tests passed!" << endl;
+}
+
+void ListTester::testDefaultConstructor() {
+	cout << "Testing List default constructor... " << flush;
+	List<Item> aList;
+	assert( aList.mySize == 0 );
+	assert( aList.myFirst == NULL );
+	assert( aList.myLast == NULL );
+	cout << "Passed!" << endl;
+}
+
+
+void ListTester::testNodeDefaultConstructor() {
+	cout << "Testing Node default constructor... " << flush;
+	List<Item>::Node aNode;
+	assert( aNode.myItem == Item() );
+	assert( aNode.myNext == NULL );
+	cout << "Passed!" << endl;
+}
+
+void ListTester::testNodeExplicitConstructor() {
+	cout << "Testing Node explicit constructor... " << flush;
+	List<Item>::Node n1(11, NULL);
+	assert( n1.myItem == 11 );
+	assert( n1.myNext == NULL );
+	cout << " 1 " << flush;
+
+	List<Item>::Node *n3 = new List<Item>::Node(33, NULL);
+	List<Item>::Node n2(22, n3);
+	assert( n2.myItem == 22 );
+	assert( n2.myNext == n3 );
+	cout << " 2 " << flush;
+	cout << "Passed!" << endl;
+}
+
+void ListTester::testAppend() {
+	cout << "Testing append()... " << flush;
+	// empty List
+	List<Item> aList;
+	assert( aList.getSize() == 0 );
+	assert( aList.myFirst == NULL );
+	assert( aList.myLast == NULL );
+	try {
+		aList.getFirst();
+		cerr << "getFirst() worked on empty list" << endl;
+		exit(1);
+	} catch (underflow_error&) {
+		cout << " 0a " << flush;
+	}
+	try {
+		aList.getLast();
+		cerr << "getLast() worked on empty list" << endl;
+		exit(1);
+	} catch (underflow_error&) {
+		cout << " 0b " << flush;
+	}
+	// append to empty list
+	aList.append(11);
+	assert( aList.getSize() == 1 );
+	assert( aList.myFirst != NULL );
+	assert( aList.myLast == aList.myFirst );
+	assert( aList.getFirst() == 11 );
+	assert( aList.getLast() == 11 );
+	assert( aList.myFirst->myNext == NULL );
+	cout << " 1 " << flush;
+	// append to a list containing 1 Item
+	aList.append(22);
+	assert( aList.getSize() == 2 );
+	assert( aList.myFirst != NULL );
+	assert( aList.myLast != NULL );
+	assert( aList.myFirst != aList.myLast );
+	assert( aList.getFirst() == 11 );
+	assert( aList.getLast() == 22 );
+	assert( aList.myFirst->myNext != NULL );
+	assert( aList.myLast->myNext == NULL );
+	cout << " 2 " << flush;
+	// append to a list containing 2 Items
+	aList.append(33);
+	assert( aList.getSize() == 3 );
+	assert( aList.myFirst != NULL );
+	assert( aList.myLast != NULL );
+	assert( aList.getFirst() == 11 );
+	assert( aList.getLast() == 33 );
+	assert( aList.myFirst->myNext->myItem == 22 );
+	assert( aList.myLast->myNext == NULL );
+	cout << " 3 " << flush;
+	cout << "Passed!" << endl;
+}
+
+void ListTester::testDestructor() {
+	cout << "Testing destructor... " << flush;
+	List<Item> aList;
+	aList.~List();
+	assert( aList.getSize() == 0 );
+	assert( aList.myFirst == NULL );
+	assert( aList.myLast == NULL );
+	cout << " 1 " << flush;
+
+	aList.append(11);
+	aList.append(22);
+	aList.append(33);
+	aList.~List();
+	assert( aList.getSize() == 0 );
+	assert( aList.myFirst == NULL );
+	assert( aList.myLast == NULL );
+	cout << " 2 " << flush;
+	cout << "Passed!  But double-check for memory leaks!" << endl;
+}
+
+void ListTester::testCopyConstructor() {
+	cout << "Testing copy constructor... " << flush;
+	// copy empty list
+	List<Item> list1;
+	List<Item> list2(list1);
+	assert( list2.getSize() == 0 );
+	assert( list2.myFirst == NULL );
+	assert( list2.myLast == NULL );
+	cout << " 1 " << flush;
+
+	// copy nonempty list
+	List<Item> list3;
+	list3.append(11);
+	list3.append(22);
+	list3.append(33);
+	List<Item> list4(list3);
+	assert( list4.getSize() == 3 );
+	assert( list4.getFirst() == 11 );
+	assert( list4.getLast() == 33 );
+	assert( list4.myFirst->myNext->myItem == 22 );
+	assert( list4.myFirst != list3.myFirst );
+	assert( list4.myLast != list3.myLast );
+	cout << " 2 " << flush;
+	cout << "Passed!" << endl;
+}
+
+void ListTester::testAssignment() {
+	cout << "Testing assignment... " << flush;
+	// empty to empty assignment
+	List<Item> list1;
+	List<Item> list2;
+	list2 = list1;
+	assert( list2.getSize() == 0 );
+	assert( list2.myFirst == NULL );
+	assert( list2.myLast == NULL );
+	cout << " 1 " << flush;
+
+	// non-empty to empty assignment
+	List<Item> list3;
+	list3.append(11);
+	list3.append(22);
+	list3.append(33);
+	List<Item> list4;
+	list4 = list3;
+	assert( list4.getSize() == 3 );
+	assert( list4.getFirst() == 11 );
+	assert( list4.getLast() == 33 );
+	assert( list4.myFirst->myNext->myItem == 22 );
+      // check that nodes are distinct
+	assert( list4.myFirst != list3.myFirst );
+	assert( list4.myFirst->myNext != list3.myFirst->myNext );
+	assert( list4.myLast != list3.myLast );
+	cout << " 2 " << flush;
+
+	// equal-sized non-empty to non-empty assignment
+	List<Item> list5;
+	list5.append(44);
+	list5.append(55);
+	list5.append(66);
+	list5 = list3;
+	assert( list5.getSize() == 3 );
+	assert( list5.getFirst() == 11 );
+	assert( list5.getLast() == 33 );
+	assert( list5.myFirst->myNext->myItem == 22 );
+      // check that nodes are distinct
+	assert( list5.myFirst != list3.myFirst );
+	assert( list5.myFirst->myNext != list3.myFirst->myNext );
+	assert( list5.myLast != list3.myLast );
+	cout << " 3 " << flush;
+
+	// empty to non-empty assignment
+	List<Item> list6;
+	list6.append(44);
+	list6.append(55);
+	list6.append(66);
+	List<Item> list7;
+	list6 = list7;
+	assert( list6.getSize() == 0 );
+	assert( list6.myFirst == NULL );
+	assert( list6.myLast == NULL );
+	cout << " 4 " << flush;
+
+	// unequal-sized non-empty to non-empty assignment
+	List<Item> list8;
+	list8.append(44);
+	list8.append(55);
+	list8.append(66);
+	list8.append(77);
+	list8 = list3;
+	assert( list8.getSize() == 3 );
+	assert( list8.getFirst() == 11 );
+	assert( list8.getLast() == 33 );
+	assert( list8.myFirst->myNext->myItem == 22 );
+      // check that nodes are distinct
+	assert( list8.myFirst != list3.myFirst );
+	assert( list8.myFirst->myNext != list3.myFirst->myNext );
+	assert( list8.myLast != list3.myLast );
+	cout << " 5 " << flush;
+
+	// assignment chaining
+	List<Item> list9;
+	list9.append(44);
+	list9.append(55);
+	list9.append(66);
+	list9.append(77);
+	List<Item> list10;
+	list10 = list9 = list8;
+	assert( list10.getSize() == 3 );
+	assert( list10.getFirst() == 11 );
+	assert( list10.getLast() == 33 );
+	assert( list10.myFirst->myNext->myItem == 22 );
+	cout << " 6 " << flush;
+
+	// self-assignment (stupid, but possible)
+	List<Item> list11;
+	list11.append(11);
+	list11.append(22);
+	list11.append(33);
+	list11 = list11;
+	assert( list11.getSize() == 3 );
+	assert( list11.getFirst() == 11 );
+	assert( list11.getLast() == 33 );
+	assert( list11.myFirst->myNext->myItem == 22 );
+	cout << " 7 " << flush;
+
+	cout << "Passed!  But double-check for memory leaks!" << endl;
+}
+
+//Author: Rebekah Cross
+void ListTester::testEquality() {
+	cout << "Testing equality... " << flush;
+
+	//compare empty lists
+	List<double> listA;
+	List<double> listB;
+	assert( listA == listB);
+	cout << " 0 " << flush;
+
+	//compare the same list
+	List<double> list1;
+	list1.append(11);
+	list1.append(22);
+	list1.append(33);
+	assert( list1 == list1);
+	cout << " 1 " << flush;
+
+	//compare same sized lists
+	List<double> list2;
+	list2.append(44);
+	list2.append(55);
+	list2.append(66);
+	assert ( !(list1 == list2) );
+	cout << " 2 " << flush;
+
+	//compare two different sized lists
+	List<double> list3;
+	list3.append(44);
+	list3.append(55);
+	list3.append(66);
+	list3.append(77);
+	assert ( !(list3 == list2) );
+	cout << " 3 " << flush;
+
+	cout << " Passed! " << endl;
+}
+
+//Author: Rebekah Cross
+void ListTester::testReadFromStream() {
+	cout << "Testing readFrom(ifstream)... " << flush;
+	ifstream in( "ListTest1.txt");
+	assert( in.is_open() );		//open file
+	List<double> list0;					//allocate empty list
+	list0.readFrom(in);			//read values into list from file
+	assert( list0.myFirst != NULL );
+	assert( list0.myFirst->myNext->myItem == 2);
+	in.close();					//close file
+
+	cout << " Passed!" << endl;
+}
+
+//Author: Rebekah Cross
+void ListTester::testWriteToFile() {
+	cout << "Testing writeTo(file)... " << flush;
+	List<double> list0;			//initial list
+	list0.append(11);
+	list0.append(22);
+	list0.append(33);
+
+	list0.writeTo( "ListTestOutput.txt", '\t');	//write values to file
+	List<double> list1;
+	list1.readFrom("ListTestOutput.txt");				//read values from file into list
+	assert( list1.myFirst != list0.myFirst );
+	assert( list1.myFirst->myItem == 11);
+	assert( list1.myLast->myItem == 33);
+
+	cout << " Passed!" << endl;
+}
+
+//Author: Rebekah Cross
+void ListTester::testPrepend() {
+	cout << "-prepend... " << flush;
+
+	//empty case
+	List<double> list0;
+	list0.prepend(-1);
+	assert(list0.myFirst != NULL);
+	assert(list0.myFirst->myItem == -1);
+	cout << " 0 " << flush;
+
+	//non-empty case
+	List<double> list1;
+	list1.append(12);
+	list1.append(13);
+	list1.prepend(11);
+	assert(list1.myFirst->myItem == 11);
+	assert(list1.myFirst->myNext->myItem == 12);
+	cout << " 1 " << flush;
+
+	cout << "Passed!" << endl;
+}
+
+//Author: Rebekah Cross
+void ListTester::testInsert() {
+	cout << "-insert... " << flush;
+	//empty case which should throw an error
+	try {
+		List<double> list0;
+		list0.insert(1,3);
+		cerr << "inserting into an empty set";
+		exit(1);
+	}
+	catch( invalid_argument& ) {
+		cout << " 0 " << flush;
+	}
+
+	//non empty case
+	List<double> list1;
+	list1.append(11);
+	list1.append(33);
+	list1.append(44);
+	list1.insert(22, 1);
+	assert( list1.myFirst->myNext->myItem == 22);
+	cout << " 1 " << flush;
+
+	cout << " Passed!" << endl;
+}
+
+/*
+ * testing inequality
+ * by: Sebene Yi for proj05
+ */
+void ListTester::testInequality() {
+	cout << "Testing !=... " << flush;
+	// empty to empty
+	List<Item> list1;
+	List<Item> list2;
+	assert( list2.getSize() == 0 );
+	assert( list2.myFirst == NULL );
+	assert( list2.myLast == NULL );
+	cout << " 1 " << flush;
+
+	// same size to different values
+	List<Item> list3;
+	list3.append(11);
+	list3.append(22);
+	list3.append(33);
+
+	List<Item> list4;
+	list4.append(22);
+	list4.append(44);
+	list4.append(55);
+
+	assert (list3 != list4);
+	cout << " 2 " << flush;
+
+	// different size
+	List<Item> list5;
+	list5.append(44);
+	list5.append(55);
+	list5.append(66);
+
+	List<Item> list6;
+	list6.append(11);
+	list6.append(22);
+
+	assert (list5 != list6);
+	cout << " 3 " << flush;
+
+	// same first number, but different rest of the values
+	List<Item> list7;
+	list7.append(44);
+	list7.append(55);
+	list7.append(66);
+
+	List<Item> list8;
+	list8.append(44);
+	list8.append(22);
+	list8.append(33);
+
+	assert (list7 != list8);
+
+	cout << " 4 " << flush;
+	cout << "Passed!  But double-check for memory leaks!" << endl;
+}
+
+/*
+ * testing write to stream
+ * by: Sebene Yi for proj05
+ */
+void ListTester::testWriteToStream() {
+	cout << "Testing writeTo(stream)... " << flush;
+	List<Item> aList;
+	aList.append(1);
+	aList.append(2);
+	aList.append(3);
+
+	ofstream fout("ListStreamOut.txt");
+	assert (fout.is_open());
+	aList.writeTo(fout, '\t');
+	fout.close();
+
+	ifstream fin("ListStreamOut.txt");
+	List<Item> bList;
+	bList.readFrom(fin);
+	assert (fin.is_open());
+
+	assert(aList.getSize()== 3);
+	assert(aList.myFirst != NULL);
+	assert(aList.myLast != NULL);
+	assert(aList.getFirst() == 1);
+	assert(aList.getLast() == 3);
+
+	cout << "Passed!" << endl;
+}
+
+/*
+ * testing read from string
+ * by: Sebene Yi for proj05
+ */
+void ListTester::testReadFromString() {
+	cout << "Testing readFrom()... " << flush;
+
+	List<Item> rList1;
+	rList1.readFrom("ListTest1.txt");
+	assert( rList1.myFirst->myItem == 1);
+	assert( rList1.myFirst->myNext->myItem == 2);
+	assert( rList1.myFirst->myNext->myNext->myItem == 3);
+	cout << " 1 " << flush;
+
+	List<Item> rList2;
+	rList2.readFrom("ListTest2.txt");
+	assert( rList2.myFirst->myItem == 4);
+	assert( rList2.myFirst->myNext->myItem == 5);
+	assert( rList2.myFirst->myNext->myNext->myItem == 6);
+	cout << " 2 " << flush;
+
+	cout << "Passed!" << endl;
+}
+
+/*
+ * testing getting the index of a value
+ * by: Sebene Yi for proj05
+ */
+void ListTester::testGetIndexOf() {
+	cout << "Testing getIndexOf()... " << flush;
+
+	List<Item> list1;
+	list1.append(11);
+	list1.append(22);
+	list1.append(33);
+
+	assert( list1.getIndexOf(11) == 0);
+	assert( list1.getIndexOf(22) == 1);
+	assert( list1.getIndexOf(33) == 2);
+	cout<< " 1 " << flush;
+
+	List<Item> list2;
+	list2.append(1);
+	list2.append(2);
+	list2.append(3);
+
+	assert( list2.getIndexOf(1) == 0);
+	assert( list2.getIndexOf(2) == 1);
+	assert( list2.getIndexOf(3) == 2);
+	cout<< " 2 " << flush;
+
+	List<Item> list3;
+	list3.append(44);
+	list3.append(55);
+	list3.append(66);
+
+	assert( list3.getIndexOf(44) == 0);
+	assert( list3.getIndexOf(55) == 1);
+	assert( list3.getIndexOf(66) == 2);
+	assert( list3.getIndexOf(77) == -1);
+	cout<< " 3 " << flush;
+
+	cout << "Passed!" << endl;
+}
+
+void ListTester::testRemove() {
+	cout << "Testing Remove()... " << flush;
+	//empty list
+	List<Item> aList;
+	try {
+		aList.remove(0);
+		cerr << "List is empty!";
+		exit(1);
+	}
+	catch (
+		invalid_argument&
+	){
+	cout<< " 0 " << flush;}
+
+	// removing with negative index
+	List<Item> list1;
+	list1.append(22);
+	assert( list1.remove(-1) == 22);
+	assert( list1.mySize == 0);
+	cout << " 1 " << flush;
+
+	//removing with positive index
+	List<Item> list2;
+	list2.append(33);
+	assert( list2.remove(0) == 33);
+	assert( list2.mySize==0);
+	cout << " 2 " << flush;
+
+	// removing middle value
+	List<Item> list3;
+	list3.append(44);
+	list3.append(55);
+	list3.append(66);
+	assert( list3.remove(1) == 55);
+	assert( list3.mySize == 2);
+	cout << " 3 " << flush;
+
+	cout << "Passed!" << endl;
+}
+/* ListTester.h declares the test-class for class List.
+ * Student: Sebene Yi (ssy3) and Rebekah Cross (rjc35)
+ * Date: March 11, 2019
+ * Joel Adams, for CS 112 at Calvin College.
+ * edited by: Sebene Yi and Rebekah Cross for CS 112 proj05
+ */
+
+#ifndef LISTTESTER_H_
+#define LISTTESTER_H_
+
+class ListTester {
+public:
+	void runTests();
+	void testDefaultConstructor();
+	void testNodeDefaultConstructor();
+	void testNodeExplicitConstructor();
+	void testAppend();
+	void testDestructor();
+	void testCopyConstructor();
+	void testAssignment();
+
+	void testEquality();		//Rebekah Cross
+	void testReadFromStream();	//Rebekah Cross
+	void testWriteToFile();		//Rebekah Cross
+	void testPrepend();			//Rebekah Cross
+	void testInsert();			//Rebekah Cross
+
+	void testInequality(); 				//by: Sebene Yi (member 2)
+	void testWriteToStream();			//by: Sebene Yi (member 2)
+	void testReadFromString(); 			//by: Sebene Yi (member 2)
+	void testGetIndexOf();				//by: Sebene Yi (member 2)
+	void testRemove();					//by: Sebene Yi (memeber 2)
+};
+
+#endif /*LISTTESTER_H_*/
+11	22	33	/* tester.cpp
+ * Student: Sebene Yi (ssy3) and Rebekah Cross (rjc35)
+ * Date: March 11, 2019
+ * Joel Adams, for CS 112 at Calvin College.
+ * edited by: Sebene Yi and Rebekah Cross for CS 112 proj05
+ */
+ 
+#include "ListTester.h"
+
+int main() {
+	ListTester lt;
+	lt.runTests();
+}
+ssy3@gold24:~/cs112/proj05$ cd d Debug
+ssy3@gold24:~/cs112/proj05/Debug$ ls
+ListTester.d  makefile	  proj05      subdir.mk  tester.o
+ListTester.o  objects.mk  sources.mk  tester.d
+ssy3@gold24:~/cs112/proj05/Debug$ makealla[1@a[1P[1@ 
+make: Nothing to be done for 'all'.
+ssy3@gold24:~/cs112/proj05/Debug$ ./Debug/proj05
+bash: ./Debug/proj05: No such file or directory
+ssy3@gold24:~/cs112/proj05/Debug$ ./Debug/proj05
+bash: ./Debug/proj05: No such file or directory
+ssy3@gold24:~/cs112/proj05/Debug$ ^C
+ssy3@gold24:~/cs112/proj05/Debug$ /.  ./Dubg   ebug/^V[K /proj05
+bash: ./Debug/proj05: No such file or directory
+ssy3@gold24:~/cs112/proj05/Debug$ cd
+ssy3@gold24:~$ cd cs112/proj05
+ssy3@gold24:~/cs112/proj05$ ./Debug/proj05
+Running List tests...
+Testing List default constructor... Passed!
+Testing Node default constructor... Passed!
+Testing Node explicit constructor...  1  2 Passed!
+Testing append()...  0a  0b  1  2  3 Passed!
+Testing destructor...  1  2 Passed!  But double-check for memory leaks!
+Testing copy constructor...  1  2 Passed!
+Testing assignment...  1  2  3  4  5  6  7 Passed!  But double-check for memory leaks!
+Testing equality...  0  1  2  3  Passed! 
+Testing readFrom(ifstream)...  Passed!
+Testing writeTo(file)...  Passed!
+-prepend...  0  1 Passed!
+-insert...  0  1  Passed!
+Testing !=...  1  2  3  4 Passed!  But double-check for memory leaks!
+Testing writeTo(stream)... Passed!
+Testing readFrom()...  1  2 Passed!
+Testing getIndexOf()...  1  2  3 Passed!
+Testing Remove()...  0  1  2  3 Passed!
+All tests passed!
+ssy3@gold24:~/cs112/proj05$ exit
+
+Script done on Mon 11 Mar 2019 07:03:03 PM EDT

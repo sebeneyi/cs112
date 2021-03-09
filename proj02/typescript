@@ -1,0 +1,422 @@
+Script started on Tue 19 Feb 2019 09:34:59 PM EST
+ssy3@gold12:~/cs112/proj02$ ls
+array.cpp      array.h		ArrayTester.h  main.cpp
+arrayData.txt  ArrayTester.cpp	Debug	       typescript
+ssy3@gold12:~/cs112/proj02$ cd debug
+bash: cd: debug: No such file or directory
+ssy3@gold12:~/cs112/proj02$ make all
+make: *** No rule to make target 'all'.  Stop.
+ssy3@gold12:~/cs112/proj02$ cd ..
+ssy3@gold12:~/cs112$ ./Debug
+bash: ./Debug: No such file or directory
+ssy3@gold12:~/cs112$ ./Debug/proj02
+bash: ./Debug/proj02: No such file or directory
+ssy3@gold12:~/cs112$ ls  pwd
+/home/ssy3/cs112
+ssy3@gold12:~/cs112$ ls
+lab01  lab02  lab02hexlist  lab03  lab0s  labo0  proj01  proj02
+ssy3@gold12:~/cs112$ cd lab   proj02
+ssy3@gold12:~/cs112/proj02$ ls
+array.cpp      array.h		ArrayTester.h  main.cpp
+arrayData.txt  ArrayTester.cpp	Debug	       typescript
+ssy3@gold12:~/cs112/proj02$ lscd proj02ls[Kpwd./Debug/proj02
+Testing initialize()... Passed!
+Testing print()... 
+Expecting 3 values: 1, 2, 3...
+1	2	3	
+Expecting 4 values: 2, 3, 4, 5...
+2	3	4	5	
+Expecting 5 values: 3, 4, 5, 6, 7...
+3	4	5	6	7	
+Passed!
+Testing average()... Passed!
+Testing sum()... Passed!
+Testing resize()... Passed!  But double-check that you deleted the old array...
+Testing concat()... Passed!  But double-check that you deleted the old array...
+Testing fill()... Passed!  But double-check that you deleted the old array...
+Testing read()... Passed!
+All tests passed!
+ssy3@gold12:~/cs112/proj02$ concat array.cc pp
+bash: concat: command not found
+ssy3@gold12:~/cs112/proj02$ concat array.cpp[1P[1P[1P
+/* array.cpp defines "C style" array operations
+ * Name: Sebene Yi
+ * Date: 02/18/19
+ * Begun by: Joel Adams, for CS 112 at Calvin College.
+ */
+
+#include "array.h"
+#include <fstream>
+#include <iostream>
+#include <istream>
+#include <cassert>
+using namespace std;
+
+
+void initialize(double *a, unsigned size) {
+	int val = 0;
+	for (unsigned i = 0; i < size; i++) {
+		val = i+1;
+		a[i] = val;
+	}
+}
+
+void print(double *a, unsigned size) {
+	for (unsigned i = 0; i < size; i++) {
+		cout << *a << '\t';
+		a++;
+	}
+}
+
+double average(double *a, unsigned size) {
+	double sum = 0.0;
+	double avg;
+	for (unsigned i = 0; i < size; i++) {
+		sum += *a;
+		a++;
+	}
+	avg = sum / size;
+	return avg;
+}
+
+double sum(double *a, unsigned size) {
+	double sum = 0.0;
+	for (unsigned i=0; i < size; i++) {
+		sum += *a;
+		a++;
+	}
+	return sum;
+}
+
+void read(istream& in, double *a, unsigned size) {
+	for (unsigned i=0; i<size; i++) {
+		in >> a[i];
+	}
+}
+
+void fill(const string& fileName, double *&a, unsigned &numValues) {
+	ifstream fin(fileName.c_str());
+	assert(fin.is_open());
+	fin >> numValues;
+	double *values = new double[numValues];
+	for (unsigned i=0; i<numValues; i++) {
+		fin >> values[i];
+	}
+	delete [] a;
+	a = values;
+	fin.close();
+}
+
+void resize(double *&a, unsigned oldSize, unsigned newSize) {
+	double * newArray = new double[newSize];
+	if (newSize != oldSize) {
+		if (newSize > oldSize) {
+			for (unsigned i=0; i<oldSize; i++){
+				newArray[i] = a[i];}
+			for (unsigned i=newSize; i < oldSize; i++){
+				newArray[i] = 0;
+				}
+		}
+		if (oldSize > newSize) {
+			for (unsigned i=0; i<newSize; i++) {
+				newArray[i] = a[i];
+				}
+			}
+}
+	delete [] a;
+	a = newArray;
+}
+
+void concat(double *a1, int size1, double *a2, int size2, double *&a3, int &size3) {
+	size3 = size1 + size2;
+	delete [] a3;
+	double * newArray = new double[size3];
+	for (int i=0; i<size1; i++) {
+		newArray[i] = a1[i];
+	}
+	for (int i=0; i<size2; i++){
+		newArray[i + size1] = a2[i];
+	}
+ a3 = newArray;
+}
+ssy3@gold12:~/cs112/proj02$ cat arrayh.  .h
+/* array.h declares "C style" array operations.
+ * Name: Sebene Yi
+ * Date: 02/18/19
+ * Begun by: Joel Adams, for CS 112 at Calvin College.
+ */
+
+#include <iostream>
+#include <cassert>
+using namespace std;
+
+
+void initialize(double *a, unsigned size);
+
+void print(double *a, unsigned size);
+
+double average(double *a, unsigned size);
+
+double sum(double *a, unsigned size);
+
+void read(istream& in, double *a, unsigned size);
+
+void fill(const string& fileName, double *&a, unsigned &numValues);
+
+void resize(double *&a, unsigned oldSize, unsigned newSize);
+
+void concat(double *a1, int size1, double *a2, int size2, double *&a3, int &size3);
+ssy3@gold12:~/cs112/proj02$ cat array     Arraty  yTester.cpp
+/* ArrayTester.cpp defines the methods to test C-style array operations.
+ * Student: Sebene Yi (ssy3)
+ * Date: 02/19/19
+ * By: Joel Adams, for CS 112 at Calvin College.
+ */
+ 
+#include "ArrayTester.h"
+#include "array.h"
+#include <fstream>
+using namespace std;
+
+ArrayTester::ArrayTester() {
+	a1 = a2 = a3 = NULL;
+}
+
+ArrayTester::~ArrayTester() {
+        cleanup();
+}
+
+void ArrayTester::cleanup() {
+	delete [] a1; a1 = NULL;
+	delete [] a2; a2 = NULL;
+	delete [] a3; a3 = NULL;
+}
+
+void ArrayTester::runTests() {
+	testInitialize();
+	testPrint();
+	testAverage();
+	testSum();
+	testResize();
+	testConcat();
+	testFill();
+	testRead();
+	cout << "All tests passed!" << endl;
+}
+
+void ArrayTester::setup() {
+	a1 = new double[3];
+	for (unsigned i = 0; i < 3; i++) {
+		a1[i] = i+1;
+	}
+	a2 = new double[4];
+	for (unsigned i = 0; i < 4; i++) {
+		a2[i] = i+2;
+	}
+	a3 = new double[5];
+	for (unsigned i = 0; i < 5; i++) {
+		a3[i] = i+3;
+	}
+}
+
+void ArrayTester::testInitialize()  {
+	cout << "Testing initialize()... " << flush;
+	setup();
+	initialize(a1, 3);
+	for (unsigned i = 0; i < 3; i++) {
+		assert( a1[i] == i+1 );
+	}
+	initialize(a2, 4);
+	for (unsigned i = 0; i < 4; i++) {
+		assert( a2[i] == i+1 );
+	}
+	initialize(a3, 5);
+	for (unsigned i = 0; i < 5; i++) {
+		assert( a3[i] == i+1 );
+	}
+        cleanup();
+	cout << "Passed!" << endl;
+}
+
+void ArrayTester::testPrint() {
+	cout << "Testing print()... " << flush;
+	setup();
+	cout << "\nExpecting 3 values: 1, 2, 3..." << endl;
+	print(a1, 3);
+	cout << "\nExpecting 4 values: 2, 3, 4, 5..." << endl;
+	print(a2, 4);
+	cout << "\nExpecting 5 values: 3, 4, 5, 6, 7..." << endl;
+	print(a3, 5);
+        cleanup();
+	cout << "\nPassed!" << endl;
+}
+
+void ArrayTester::testAverage() {
+	cout << "Testing average()... " << flush;
+	setup();
+	assert( average(a1, 3) == 2  );
+	assert( average(a2, 4) == 3.5 );
+	assert( average(a3, 5) == 5 );
+        cleanup();
+	cout << "Passed!" << endl;
+}
+
+void ArrayTester::testSum() {
+	cout << "Testing sum()... " << flush;
+	setup();
+	assert( sum(a1, 3) == 6 );
+	assert( sum(a2, 4) == 14 );
+	assert( sum(a3, 5) == 25 );
+        cleanup();
+	cout << "Passed!" << endl;
+}
+
+void ArrayTester::testResize() {
+	cout << "Testing resize()... " << flush;
+	setup();
+	double * temp1 = a1;
+	resize(a1, 3, 7);
+	assert( a1 != temp1 );
+	for (unsigned i = 0; i < 3; i++) {
+		assert( a1[i] == i+1 );
+	}
+	for (unsigned i = 3; i < 7; i++) {
+		assert( a1[i] == 0 );
+	}
+
+	double *temp3 = a3;
+	resize(a3, 5, 3);
+	assert( temp3 != a3 );
+	for (unsigned i = 0; i < 3; i++) {
+		assert( a3[i] == i+3 );
+	}
+        cleanup();
+	cout << "Passed!  But double-check that you deleted the old array..." << endl;
+}
+
+void ArrayTester::testConcat() {
+	cout << "Testing concat()... " << flush;
+	setup();
+	int size1 = 3, size2 = 4, size3 = 5;
+	double *temp1 = a1;
+	double *temp2 = a2;
+	double *temp3 = a3;
+	concat(a1, size1, a2, size2, a3, size3);
+	assert( temp1 == a1 );
+	assert( temp2 == a2 );
+        /* the next assertion assumes that the new array's base
+         *  address is different from the old array's base address,
+         *  which may not be true. If concat() seems to be right,
+         *  and passes all assertions except this one, you may
+         *  comment out this assertion.
+         */
+	assert( temp3 != a3 );
+	assert( size1 == 3 );
+	assert( size2 == 4 );
+	assert( size3 == 7 );
+	for (int i = 0; i < 3; i++) {
+		assert( a3[i] == i+1 );
+	}
+	int j = 2;
+	for (int i = 3; i < 7; i++) {
+		assert( a3[i] == j );
+		j++;
+	}
+        cleanup();
+	cout << "Passed!  But double-check that you deleted the old array..." << endl;
+}
+
+
+void ArrayTester::testFill() {
+	cout << "Testing fill()... " << flush;
+	setup();
+	unsigned size1 = 3;
+	double *temp1 = a1;
+	fill("arrayData.txt", a1, size1);
+	assert( a1 != temp1 );
+	assert( size1 == 6);
+	for (unsigned i = 0; i < size1; i++) {
+		assert( a1[i] == i+10 );   // values should be 10, 11, 12, 13, 14, 15
+	}
+        cleanup();
+	cout << "Passed!  But double-check that you deleted the old array..." << endl;
+}
+
+void ArrayTester::testRead() {
+	cout << "Testing read()... " << flush;
+	double* a4 = new double[5];        // allocate anonymous array
+	ifstream fin("arrayData.txt");
+	assert( fin.is_open() );
+	string firstLine, secondLine;
+	getline(fin, firstLine);           // skip past the '6' that's there for fill()...
+	getline(fin, secondLine);          // skip past the '10'
+	read(fin, a4, 5);                  // read 5 values instead of 6
+	for (unsigned i = 0; i < 5; i++) { // check what we got:
+		assert( a4[i] == i+11 );   //  values should be 11, 12, 13, 14, 15,
+	}                                  //   so test-values differ from fill()
+        delete [] a4;                      // deallocate anonymous array
+	cout << "Passed!" << endl;
+}
+
+ssy3@gold12:~/cs112/proj02$ cat ArrayTester.h
+/*ArrayTester.h provides a class to test C-style array operations.
+ * Student: Sebene Yi (ssy3)
+ * Date: 02/19/19
+ * By: Joel Adams, for CS 112 at Calvin College.
+ */
+#ifndef ARRAY_TESTER_H_
+#define ARRAY_TESTER_H_
+
+#include "array.h"  // the functions we are testing
+#include <iostream>
+#include <cassert>
+using namespace std;
+
+class ArrayTester
+{
+public:
+	ArrayTester();
+	virtual ~ArrayTester();
+	void runTests();
+	void setup();
+	void cleanup();
+	void testInitialize();
+	void testPrint();
+	void testAverage();
+	void testSum();
+	void testResize();
+	void testConcat();
+	void testFill();
+	void testRead();
+private:
+	double * a1;
+	double * a2;
+	double * a3;
+};
+
+#endif /*ARRAY_TESTER_H_*/
+ssy3@gold12:~/cs112/proj02$ cat main.cpp
+/*main.cpp drives the testing of the array operations.
+ * Student: Sebene Yi
+ * Date: 02/18/19
+ * Begun by: Joel Adams, for CS112 at Calvin College
+ */
+
+#include "ArrayTester.h"
+
+int main() {
+	ArrayTester at;
+	at.runTests();
+}
+ssy3@gold12:~/cs112/proj02$ arrayData.txt
+bash: arrayData.txt: command not found
+ssy3@gold12:~/cs112/proj02$ cat ArrayD      arar  rayData.txt
+6
+10
+11
+12
+13
+14
+15ssy3@gold12:~/cs112/proj02$ exit
+
+Script done on Tue 19 Feb 2019 09:38:54 PM EST
